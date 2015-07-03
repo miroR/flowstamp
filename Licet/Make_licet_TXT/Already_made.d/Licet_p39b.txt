@@ -1,0 +1,6 @@
+<markup><span face="Sans" size="8200" weight="semibold" fgcolor="white" rise="7200">
+
+
+Miroslav Rovis	PGP-key 4096R/4FBAF0AE	FCF1 3245 ED24 7DCE 4438  55B7 EA98 8488 4FBA F0AE</span><span face="Sans" size="8000" weight="semibold" fgcolor="white" rise="5200">
+= an equivalent electronic text to the above has sum:  ==  istovriedan elektronički tekst gornjem je zbroja: =</span>
+<span face="Sans" size="8000" weight="semibold" fgcolor="white" rise="6000">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></markup>

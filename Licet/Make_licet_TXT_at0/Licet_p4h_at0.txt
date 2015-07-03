@@ -1,0 +1,17 @@
+<markup><span face="Ubuntu" size="11500" stretch="expanded" weight="semibold" fgcolor="white">pa bi trebalo biti lahko postići da radi na drugim Unix vrstama. Prirediti ga za druge platforme (porting) moglo bi i ne biti trivialno, nemam vrjemena, svatko je slobodan pokušati, u okviru BSD licence.
+
+Tekst koji čitaš, uporabom Flowstamp programa možeš sasvim zamieniti vlastitim, slično kao u HTML-u, putem označivajućeg (markup) jezika.
+
+Flowstamp je međutim nastao jer sam ja trebao funkcionalnost koju ćeš moći motriti tiekom cielog trajanja slikopisa na kojeg Flowstamp prozirno pečati dva (vrlo kratka) redka teksta (neka mrežna adresa, ime, što drugo).
+
+Funkcionalnost radi koje sam izradio Flowstamp, je, međutim, treći redak upravo između ta dva (obično) krupnijeg fonta, i vrlinom tog trećeg redka s tekućim 64-znamenkastim heksadecimalnim brojem, SHA256 zbrojem proračunatim nad izvornim slikopisom prije prevlačenja Flowstampom, ti možeš sačuvati identitet tvog auktorskog djela od krađe jer možeš dokazati svoje auktorstvo.
+
+Ili možeš nepobitno tvrditi, činjenicom tog jedinstvenog zbroja pokretno-zapečaćenog na, recimo, slikopis koji si snimio ti ili tvoja družba TV-karticom iz slobodne difuzije (free-to-air), i iz javne domene (u demokracijama: viesti, politička zbivanja), da je taj slikopis iz tvoje zbirke.
+
+Sve to, naravno, ukoliko čuvaš izvornik koji je moguće ustanoviti tim SHA256 zbrojem. Ovo je važno. Upozoren si!
+
+Čudestnost je što sada kad možeš pouzdano tvrditi predhodno, ti možeš dopustiti gledanje tvojeg slikopisa u javnosti (ako je sve što si želio bilo da nitko ne svojata tvoje djelo), ili unutar neke grupe, ili pojedincima (primjerice samo određenoj grupi ili osobama, izabranim po nekoj kakvoći ili nadležnosti).
+
+To možeš funkcionalnošću Flowstamp programa koju nazvah Licet (latinski: dopušteno je), izpisom vlastitih uvjeta licenciranja u tekstu namjesto ovog na početku i/ili još podrobnije u tekstu na kraju slikopisa.
+
+Sav taj tekst može biti što ti želiš i liepo oblikovan. Ali Flowstamp nije GUI program, nego program za komandnu liniju. Bit će kompleksnosti kojom ćeš trebati ovladati. Tu je dokumentacija.</span></markup>

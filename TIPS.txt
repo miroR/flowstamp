@@ -1,0 +1,192 @@
+Why '-g 10' in my commands?
+===========================
+
+This is an explanation why I use the '-g 10' (or even '-g 5') option with
+FFmpeg, and also why some (especially short files) could fail to get the licet
+added to them.
+
+"-g NN" stands for group of pictures. And if you just record a program with
+your satellite card, and get, say Al Jazeera English, one or two minutes in an
+pal (or 720x576) size m2t file (that is old technology, but it's still used),
+and want to archive it in a format that takes less space, e.g.:
+
+$ ffmpeg -i AlJE_150702_1156.m2t AlJE_150702_1156.mkv
+
+you get a very lean file, which is good (probably one third, 1/3, of the
+original), and very little if any, loss of quality. That is so because the
+FFmpeg is the leader program, probably the best there is, and it is in this
+default behavior, in my understanding, intentionally suited for beginners, to
+entice them to get involved with that hard to grasp command line (even on
+Windoze it works wonders!). It's not hard to convert like that, is it?
+
+If you weren't conscious of the matters described here, in which case you
+would probably decide to use the included FFmpeg-to-768-16by9.sh script, you
+could look into the code of my program, and decide to just convert the file
+like:
+
+$ ffmpeg -i AlJE_150702_1156.mkv -vf scale=768x576,setsar=4/3,setdar=16/9 AlJE_150702_1156r.mkv
+
+(actually if you figured it out earlier, you could have thought of doing that
+on the original:
+
+$ ffmpeg -i AlJE_150702_1156.m2t -vf scale=768x576,setsar=4/3,setdar=16/9 AlJE_150702_1156r.mkv )
+
+And, as I said: especially for short files, while all would still be well if
+you went with any kind of stamping on the whole duration or length of the
+video, where these matters are taken into account in my scripts, you probably
+couldn't add licet at start and end to it.
+
+Because, by default (and that is good), the '-g NN' is pretty large, I think
+close to as large as it can be, because for archiving, while you sure do need
+the entire information of the video, you don't necessarily need it to be ready
+for manipulation!
+
+The keyframes (keyframe, to explain it in simple, approximate words, is the
+point of the complete information in the video, which does not need any
+information that is before that point, to be complete), [keyframes] in the
+default ffmpeg conversion setting are few and far apart, the information is
+still as complete as if they were many and close to each other, and the size
+of the file (such as in MB) is, as I mentioned, about 1/3 of the original,
+very lean. While with '-g 10' the size is roughly around 50% more than the
+default. Much more, too much, for archiving.
+
+On the other hand, if you set '-g 10' the keyframes are after every 10
+pictures, they are many and close to each other.
+
+So you see why the above is the default. And here comes the crux of the
+matter. You can not split a file (properly), other than at the keyframe!
+
+To while large '-g NN' is best for simply archiving, if you want to manipulate
+in almost any way that file, you first need to, istead of the above command,
+do (see the '-g 10'?):
+
+$ ffmpeg -i AlJE_150702_1156.mkv -g 10 -vf scale=768x576,setsar=4/3,setdar=16/9 AlJE_150702_1156rr.mkv
+
+And then those short files will be workable for video manipulation and surely
+for Flowstamp.
+
+Let me demonstrate it to you.
+
+Whichever the length (duration) of the short file, we will split the last of
+it:
+
+$ mkvmerge -o AlJE_150702_1156r_.mkv --split timecodes:69s AlJE_150702_1156r.mkv
+$ mkvmerge -o AlJE_150702_1156r_-002_.mkv --split timecodes:10s AlJE_150702_1156r_-002.mkv
+
+The above doesn't matter, notice that I got the last 10 seconds of the file:
+
+$ mkvinfo AlJE_150702_1156r_-002_-002.mkv | grep Duration
+| + Duration: 10.000s (00:00:10.000)
+$
+
+and I will try to split that long a chunk in half:
+
+$ mkvmerge -o AlJE_150702_1156r_-002_-002_.mkv --split timecodes:5s AlJE_150702_1156r_-002_-002.mkv
+mkvmerge v7.8.0 ('River Man') 64bit built on May  2 2015 20:18:27
+'AlJE_F0522_1556_PART_-002_-002.mkv': Using the demultiplexer for the format 'Matroska'.
+create pack at 9524
+'AlJE_F0522_1556_PART_-002_-002.mkv' track 0: Using the output module for the format 'AVC/h.264'.
+'AlJE_F0522_1556_PART_-002_-002.mkv' track 1: Using the output module for the format 'Vorbis'.
+The file 'AlJE_F0522_1556_PART_-002_-002_-001.mkv' has been opened for writing.
+Progress: 100%
+The cue entries (the index) are being written...
+Muxing took 0 seconds.
+
+It can't be done (see that it got only one file out, of those same 10 seconds
+duration, of course)! That's the few and far apart from each other keyframes.
+
+Try it on some of your files, and figure it out. It's important.
+
+Watching, via terrestrial and satellite, I noticed in programs local and even
+(but much more rarely) international, how even people who manipulate videos
+sometimes don't understand these things. They need to, if they want to publish
+any decent video works.
+
+What with the 'read FAKE' lines in my script?
+=============================================
+
+If the 'read FAKE' lines in the scripts are (un)comment(ed out), then do this
+to or not to pause at each and every step the main 'flowstamp' script and
+other scripts make. For some of those lines:
+
+Un:
+
+$ sed -i.bak 's/^#read FAKE/read FAKE/' name-of-the-script
+
+(replace name-of-the-script with flowstamp/other of the scripts)
+
+or out:
+
+$ sed -i.bak 's/^read FAKE/#read FAKE/' name-of-the-script
+
+But actually the above two one-liners will not do it for all the scripts,
+since I formatted them, and some `read FAKE' may be not from the start of the
+line, in which case remove the '^' character, probably will work then.
+
+There surely are fine sed lines to use on those scripts, or in your FOSS
+editor of choice, such as Vim (which I use), or XEmacs, or Nano, and that can
+do it in a few keystrokes for (the) whole/all the scrip(s).
+
+Exampli gratia, in Vim, I use these two commands:
+
+:%s/\([[:space:]]\{1,24\}\)read FAKE/\1#read FAKE/gc
+or to reverse:
+:%s/\([[:space:]]\{1,24\}\)#read FAKE/\1read FAKE/gc
+
+for the lines with space (mostly tabs) before 'read FAKE', and:
+
+:%s/^read FAKE/#read FAKE/gc
+or to reverse:
+:%s/^#read FAKE/read FAKE/gc
+
+for the lines that start with 'read FAKE' or '#read FAKE'.
+
+Just, when commenting out, be sure not to comment the one or two necessary
+lines in the beginning, that mostly must be uncommented (the
+'read FAKE ; #delay' and the 'read FAKE & pid=$! ; sleep 5 ; kill $pid ...'
+lines).
+
+On the command line, say, this (a real output prior to publishing first
+release):
+$ egrep -rI '^read FAKE|[[:space:]]{1,24\}read FAKE' ./ 
+./flowstamp-prepare.sh:read FAKE ;
+./flowstamp:read FAKE ; #delay
+./flowstamp:read FAKE & pid=$! ; sleep 5 ; kill $pid 2>/dev/null ;
+./README:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+./flowstamp-gtk-sizes.sh:read FAKE
+$
+would allow a non-interrupted run after start, for as long as there are videos
+to churn.
+
+These work because I write them 'read FAKE' in my scripts for such exact
+purpose. Very imperfect (I'm sure I'll know better the next time I read 'man
+bash' for another week or longer), but what I do is, mark the script with a:
+
+echo $(basename $0) point XX
+read FAKE
+
+It is, as you can see, followed by the 'read FAKE'. In that fashion I can
+inspect exactly what happens at each of the steps, and I also have it in the
+log that we create at the start of flowstamp base script, where we constantly
+tee the needed output to. and can figure out where to search what went wrong
+much more easily.
+
+Just you need to uncomment those, as the program ships with those commented
+out, else how would a nowadays beginner who will become a proficient FOSS
+Linux user some day, who I hope some are reading and using Flowstamp, know?
+They first need to try and use the program, the likelihood being not so
+improbable that it will work (maybe with some trying) for even beginners!
+
+I made those lines with read FAKE, which call bash's own read (function or
+whatever that it be), which could really read what you type but I regard it as
+stowing away nothing, and suggest you just hit Enter or Ctrl-C at it,
+depending on how the script fares. That variable is not for real use in the
+scripts, so I name that variable FAKE. The point is only: pause and decide
+for, again: Enter to continue if all is well, or for quitting with Ctrl-C and
+and some investigating.

@@ -1,0 +1,1 @@
+<markup><span face="Ubuntu" stretch="normal" size="8000" weight="semibold" fgcolor="white">This <span color="#AADEFE">video</span> is licensed under a Creative Commons Attribution-NonCommercial- ShareAlike 3.0 Unported License.</span></markup>

@@ -1,0 +1,1 @@
+<markup><span font="Italic" face="Serif" size="18000" weight="semibold" fgcolor="#cce0e0">GNU/Linux</span></markup>

@@ -1,0 +1,1 @@
+<markup><span face="Ubuntu" size="11500" stretch="expanded" weight="semibold" fgcolor="white">koji bi trebao raditi na Unix platformi Operativnih Sustava, jer sam ga uspješno izpitao na</span></markup>

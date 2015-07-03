@@ -1,0 +1,180 @@
+#!/bin/bash
+#
+# flowS_nosum -- this script is part of Flowstamp program
+#
+# Copyright (C) 2015 Miroslav Rovis, <http://www.CroatiaFidelis.hr/>
+#
+# released under BSD license, pls. see LICENSE
+#
+# Requires: x) a fine install of imagemagick (probably on any *nix flavor, of
+#			which the most used are various FOSS Linux flavors.
+#			I have no idea how it could be used on other OS's at this time)
+#
+#			xx) the right fonts, pls. visit the README (for this script, find
+#			the 'dejavu' string below)
+#
+# This code creates a PNG image file with two lines, top and bottom (but they
+# will later appear thin and transparent at around the middle of your video),
+# for cutting out series of PNG images to be fed to ffmpeg to make that thinly
+# transparent moving stamp (the flow[ing ]stamp)
+#
+# Pls. visit this, which are some of the best in among so many great truly free
+# software treats of the FOSS Linux computing of today, for more:
+#      http://www.imagemagick.org -- FOSS Linux and Unix and other OS's
+#
+# This script is called by the flowstamp (the main script of the set)
+# but it could be used on its own as well.
+#
+# Rid ourselves of previous attempts, moving the previous output to "Just In
+# Case" (JIC/) directory, created for that purpose.  We'll probaly rm -rf JIC/
+# once we're sure we don't need all our old tries...  The date +%s renames the
+# file with the time in seconds since 1970-01-01 which is unique enough.
+mkdir -p JIC/
+if [ -e "flowS_noSum.png" ] ; then
+ mv -i flowS_noSum.png JIC/flowS_noSum_`date +%s`.png
+fi
+# Some time in the future, I might make all this easier yet for newbies. For
+# now:
+#
+#	You need to tweak the input to this script yourself!
+#
+# If the sizes below are not to your liking, modify the input numbers...
+# Surely there's some calculations you will need to do though...  You will need
+# to know what you're doing, and may need to perform numerous trials.
+#
+# Suggestion:
+# to more easily set up the aapropriate level of transparency, we start with
+# creating rather opaque images. Later, for these large text those will get the
+# equivalent of, as an example value, around -blend 07x93 (with the transparent
+# image at the compositing command) or around there (but through different
+# blending lines in the main script, the flowstamp proper. But feel free to
+# adjust these just as any other settings in this program to your need.
+#
+# The 6546 in 6546x480 is a multiple of 640 (plus some extra), which is the
+# step for repetition of our loops.
+convert -size 6546x480 xc:none -background transparent  flowS_EMPTY.png
+# Pick out a color for the font, maybe, as an example value, 0022dd, or choose
+# some other.  Your words in the top/bottom line, i.e. lines I call top and
+# bottom to discern them, but they for my kind of stamping need to run through
+# the middle of the video, the one that I name top, lnTop in names, some
+# distance above the center of the video, and the bottom, lnBtm, underneath it,
+# below the center. Actually slight offset upwards I consider best measure in
+# most cases.  Because you need stretches of even surfaces like blue sky, and
+# those are found mostly in upper regions of display. However, centered it need
+# be. We want it stamped and not been easily cropped out meaningful non-stamped
+# parts of it, for such people who don't want to give others credit for their
+# work.
+#
+convert -background transparent -fill "#001e63" -font \
+ /usr/share/fonts/dejavu/DejaVuSansCondensed-Bold.ttf \
+ -pointsize 50 label:"Flowstamp overlayed"   flowS__lnTop_50pt.png
+convert -background transparent -fill "#001e63" -font \
+ /usr/share/fonts/dejavu/DejaVuSansCondensed-BoldOblique.ttf \
+ -pointsize 49 label:"www.CroatiaFidelis.hr"  flowS__lnBtm_49pt.png
+
+composite flowS__lnTop_50pt.png -geometry   +18+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_0lnTop.png
+composite flowS__lnTop_50pt.png -geometry  +658+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_1lnTop.png
+composite flowS__lnTop_50pt.png -geometry +1298+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_2lnTop.png
+composite flowS__lnTop_50pt.png -geometry +1938+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_3lnTop.png
+composite flowS__lnTop_50pt.png -geometry +2578+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_4lnTop.png
+composite flowS__lnTop_50pt.png -geometry +3218+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_5lnTop.png
+composite flowS__lnTop_50pt.png -geometry +3858+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_6lnTop.png
+composite flowS__lnTop_50pt.png -geometry +4498+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_7lnTop.png
+composite flowS__lnTop_50pt.png -geometry +5138+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_8lnTop.png
+composite flowS__lnTop_50pt.png -geometry +5778+180 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_9lnTop.png
+
+composite flowS_noSum_0lnTop.png flowS_noSum_1lnTop.png \
+    flowS_noSum_lnTop0+1.png
+composite flowS_noSum_2lnTop.png flowS_noSum_3lnTop.png \
+    flowS_noSum_lnTop2+3.png
+composite flowS_noSum_4lnTop.png flowS_noSum_5lnTop.png \
+    flowS_noSum_lnTop4+5.png
+composite flowS_noSum_6lnTop.png flowS_noSum_7lnTop.png \
+    flowS_noSum_lnTop6+7.png
+composite flowS_noSum_8lnTop.png flowS_noSum_9lnTop.png \
+    flowS_noSum_lnTop8+9.png
+
+composite flowS_noSum_lnTop0+1.png flowS_noSum_lnTop2+3.png \
+    flowS_noSum_lnTop0+1+2+3.png
+composite flowS_noSum_lnTop0+1+2+3.png flowS_noSum_lnTop4+5.png \
+    flowS_noSum_lnTop0+1+2+3+4+5.png
+composite flowS_noSum_lnTop0+1+2+3+4+5.png flowS_noSum_lnTop6+7.png \
+    flowS_noSum_lnTop0+1+2+3+4+5+6+7.png
+composite flowS_noSum_lnTop0+1+2+3+4+5+6+7.png flowS_noSum_lnTop8+9.png \
+    flowS_noSum_lnTop0+1+2+3+4+5+6+7+8+9.png
+
+composite flowS__lnBtm_49pt.png -geometry  +247+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_0lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry  +887+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_1lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +1527+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_2lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +2167+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_3lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +2807+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_4lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +3447+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_5lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +4087+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_6lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +4727+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_7lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +5367+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_8lnBtm.png
+composite flowS__lnBtm_49pt.png -geometry +6007+264 -blend 80x20 \
+    flowS_EMPTY.png flowS_noSum_9lnBtm.png
+
+composite flowS_noSum_0lnBtm.png flowS_noSum_1lnBtm.png \
+    flowS_noSum_lnBtm0+1.png
+composite flowS_noSum_2lnBtm.png flowS_noSum_3lnBtm.png \
+    flowS_noSum_lnBtm2+3.png
+composite flowS_noSum_4lnBtm.png flowS_noSum_5lnBtm.png \
+    flowS_noSum_lnBtm4+5.png
+composite flowS_noSum_6lnBtm.png flowS_noSum_7lnBtm.png \
+    flowS_noSum_lnBtm6+7.png
+composite flowS_noSum_8lnBtm.png flowS_noSum_9lnBtm.png \
+    flowS_noSum_lnBtm8+9.png
+
+composite flowS_noSum_lnBtm0+1.png flowS_noSum_lnBtm2+3.png \
+    flowS_noSum_lnBtm0+1+2+3.png
+composite flowS_noSum_lnBtm0+1+2+3.png flowS_noSum_lnBtm4+5.png \
+    flowS_noSum_lnBtm0+1+2+3+4+5.png
+composite flowS_noSum_lnBtm0+1+2+3+4+5.png flowS_noSum_lnBtm6+7.png \
+    flowS_noSum_lnBtm0+1+2+3+4+5+6+7.png
+composite flowS_noSum_lnBtm0+1+2+3+4+5+6+7.png flowS_noSum_lnBtm8+9.png \
+    flowS_noSum_lnBtm0+1+2+3+4+5+6+7+8+9.png
+
+composite flowS_noSum_lnBtm0+1+2+3+4+5+6+7+8+9.png \
+    flowS_noSum_lnTop0+1+2+3+4+5+6+7+8+9.png flowS_noSum.png
+
+# At this point the new flowS_noSum.png image is produced.  What follows is
+# what you can do if you want to check what you have in your working directory
+# at this time, before cleaning.
+#
+# You sure should comment out the following lines, up unto the second read FAKE
+# once you're happy with the flowS_noSum.png or just don't need all the
+# checking.
+#echo "There is an flowS_noSum.png among all the temp files"
+#echo "Hit Enter to display it (display is part of imagemagick)"
+#read FAKE
+#display flowS_noSum.png
+#echo "If all is well, hit Enter for cleaning temporary files"
+#echo "You can also hit Ctrl+C to kill the script and investigate..."
+#read FAKE
+
+# Cleaning:
+mv flowS_EMPTY.png flowS_noSum_?lnTop.png flowS_noSum_?lnBtm.png JIC/
+mv flowS_noSum_lnTop*.png JIC/
+mv flowS_noSum_lnBtm*.png JIC/
+mv flowS__lnTop_50pt.png JIC/
+mv flowS__lnBtm_49pt.png JIC/

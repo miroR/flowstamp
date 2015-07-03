@@ -1,0 +1,5 @@
+<markup><span face="Ubuntu" stretch="expanded" size="11500" weight="semibold"
+fgcolor="white"><span fgcolor="#84fff7">miro.rovis@croatiafidelis.hr</span>
+<span strikethrough_color="red"><s>m.rovis@inet.hr</s></span>    <span
+strikethrough_color="red"><s>miro.rovis@gmail.com</s>    </span>
+<span strikethrough_color="red"><s>m51r@yahoo.com</s></span></span></markup>

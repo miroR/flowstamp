@@ -1,0 +1,1027 @@
+#!/bin/bash
+#
+# flowstamp - stamps video with (optionally) transparent moving watermark
+#             (sub-optionally) containing checksum of the original and
+#             (optionally) adding credit/license sequence at start/end of video
+#
+# Copyright (C) 2015 Miroslav Rovis, <http://www.CroatiaFidelis.hr/>
+#
+# released under BSD license, pls. see LICENSE
+#
+# Of the optional two things that this program does, this, its base script, the
+# flowstamp proper, does the first optional, and dedicates great care to the
+# sub-optional of the first optional, the sum-stamping.  The second optional,
+# the adding of the license/credit sequence at start and end of the video will
+# later be accomplished by the other script, the Cut4Licet.sh, that will be
+# called to that purpose.
+#
+
+fSlog=flowstamp_$(date +%y%m%d_%H%M%S)_$(hostname).log
+export fSlog
+touch $fSlog
+echo "###    "
+echo "###    "
+echo "###    Pls. notice that you have a log $fSlog"
+echo "###    being written to in the current directory..."
+echo "###    "
+echo "###    "
+sleep 3 ;
+echo "###    ...recording events during the run of this script."
+echo "###    Use it to check whether all is fine, and esp. if things go wrong."
+echo "###    You should open it up in separate terminal,"
+echo "###    till you're finished acquainting yourself with the script"
+echo "###    and tweaking the script."
+echo "###    "
+echo "###    Also take notice that reading just these lines here"
+echo "###    does not exonerate you from reading the script itself"
+echo "###    "
+echo "###    :-)"
+echo "###    "
+sleep 3 ;
+echo "###    Please hit Enter to continue!"
+echo "###    [You can read the rest of these lines also in that/this:]" |& tee -a $fSlog
+echo "###    $fSlog" |& tee -a $fSlog
+echo "###    "
+echo "###    And remember that you can remove this 2x3 seconds sleep (and the" |& tee -a $fSlog
+echo "###    waiting for your hitting the Enter) delay by editing the script or" |& tee -a $fSlog
+echo "###    with flowstamp-prepare.sh script." |& tee -a $fSlog
+read FAKE ; #delay
+echo "###    " |& tee -a $fSlog
+echo "###    Remember that the author of this program is not liable in any way" |& tee -a $fSlog
+echo "###    if things go wrong for you, as went for him occasionally" |& tee -a $fSlog
+echo "###    during initial bug fixing time." |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    _You_ make sure that the right sha256 sums are flowstamped" |& tee -a $fSlog
+echo "###    onto the right videos in the right way, and/or other things work" |& tee -a $fSlog
+echo "###    for you as expected and here described, and that for some" |& tee -a $fSlog
+echo "###    reason some circumstantial damage to your system or any" |& tee -a $fSlog
+echo "###    unintended effect does not occur!" |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    If you feel you don't have the required level of understanding" |& tee -a $fSlog
+echo "###    to try and tweak this script, GNU/Linux has ample and detailed" |& tee -a $fSlog
+echo "###    documentation for you to study and come back when you" |& tee -a $fSlog
+echo "###    feel you learned what is required; or seek expert advice!" |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    So this is \$fSlog (fS for flowStamp, to save typing):" |& tee -a $fSlog
+echo "###    $fSlog" |& tee -a $fSlog
+echo "###    and it is useful/necessary for following the actions of flowstamp" |& tee -a $fSlog
+echo "###    program and checking and troubleshooting of it." |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+# The script can take two arguments, but if none is provided it still
+# works.
+#
+# Pls. take notice not to name any of the two arguments (the files containing
+# the necessary lists, see below), if you provide them, starting with the exact
+# string similar to some of the names of the many intermediate files, i.e.
+# ls-1_vidXXXX or flowSXXXX, else, they might get deleted before they need to
+# be used, and you won't get the expected result.
+#
+# There could be strange effects in case a flowstamp run was terminated such as
+# with Ctrl+C, and a new run was started in the same direcory. The following
+# aims at eliminating some of those.
+rm -vf ls-1_vid*
+rm -f my_list
+if [ -n "$1" ]
+	then
+		#echo $1
+		cat $1 >my_list
+		# If you supply a filename with the infix _fs and _fL, since it
+		# indicates our already finished files, Flowstamp will not work on
+		# them. If your video happens to have such an infix, rename it and then
+		# include it in your list.
+		# not working on already finished files (with the infix _fs and _fL):
+		cat my_list | sed 's/.mkv//' | egrep -v '_fs$|_fL$' > ls-1_vid
+		rm my_list
+	else
+		# not working on already finished files (with the infix _fs and _fL):
+		ls -1 *.mkv | sed 's/.mkv//' | egrep -v '_fs$|_fL$' > ls-1_vid
+fi
+# Here make a check if the ${i}_fL.mkv already exist, and ask the user if (s)he
+# wants to overwrite it.
+echo "###    The principal script of the Flowstamp program, spelled" |& tee -a $fSlog
+echo "###    flowstamp with lowecase 'f', iterates on a list of videos" |& tee -a $fSlog
+echo "###    placed in the directory the program is untarred into." |& tee -a $fSlog
+echo "###    The very next we'll start a for loop, which will finish" |& tee -a $fSlog
+echo "###    near the end of the file and allows for a lot of options" |& tee -a $fSlog
+echo "###    for manipulationg the transparent overlay and the added start and" |& tee -a $fSlog
+echo "###    end licet sequence, whichever you choose." |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+for i in $(cat ls-1_vid|sed 's/\.mkv//') ; do
+	# We may need to export the i variable. Getting lost, not sure. Hope it
+	# won't hurt. (I need to remind you, kind reader, that I'm not reall a programmer.)
+	export i
+	echo "###    Checking on the elegibility of the entry item:" |& tee -a $fSlog
+	echo "###    $i.mkv" |& tee -a $fSlog
+	if [ -e "${i}_fL.mkv" ] && [ -s "${i}_fL.mkv" ] ; then
+		echo "" |& tee -a $fSlog
+		echo "You have ${i}_fL.mkv, which could be" |& tee -a $fSlog
+		echo "(previously) licet-flowstamped video, so you might be repeating" |& tee -a $fSlog
+		echo "your work (necessary if that was a failed attempt). If you want to" |& tee -a $fSlog
+		echo "repeat the whole process of licet-flowstamping and overwrite it" |& tee -a $fSlog
+		echo "answer 'YES' (three uppercase letters), anything else will remove" |& tee -a $fSlog
+		echo "that item from the list and we won't overwrite that" |& tee -a $fSlog
+		echo "licet-flowstamped video." |& tee -a $fSlog
+		echo "" |& tee -a $fSlog
+		read licet_flowstamped_video_overwrite
+		if [ "$licet_flowstamped_video_overwrite" != "YES" ] ; then
+			mv -v ls-1_vid ls-1_vid_with-old-fL |& tee -a $fSlog
+			cat ls-1_vid_with-old-fL|grep -v "${i}$" > ls-1_vid |& tee -a $fSlog
+			echo "This is just a diff to check if we removed the video entry that" |& tee -a $fSlog
+			echo "would be a duplicate work." |& tee -a $fSlog
+			echo diff ls-1_vid ls-1_vid_with-old-fL |& tee -a $fSlog
+			diff ls-1_vid ls-1_vid_with-old-fL |& tee -a $fSlog
+		else
+		echo "" |& tee -a $fSlog
+		echo "Alright! We'll do the work on the ${i}.mkv video (again)!" |& tee -a $fSlog
+		echo "" |& tee -a $fSlog
+		fi
+	fi
+done
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    The ls-1_vid contains your (entire) list:" |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+cat ls-1_vid |& tee -a $fSlog
+
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    I'm waiting 5 seconds for your review of the list." |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    You can quit with Ctrl-C, revise/modify and just restart ./flowstamp <options>." |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+echo "###    (Else, just wait, and we continue.)" |& tee -a $fSlog
+read FAKE & pid=$! ; sleep 5 ; kill $pid 2>/dev/null ;
+echo "###    " |& tee -a $fSlog
+echo "###    " |& tee -a $fSlog
+rm -vf flowS*.png
+rm -vf flowS*.png
+rm -vf *.lenf
+rm -vf *.len
+rm -vf currsum_grepd_tmp
+rm -vf ls-1_641-1280 ls-1_641-1493 ls-1_641-1920
+./flowS_noSum |& tee -a $fSlog
+
+mkdir -p JIC/
+for i in $(cat ls-1_vid) ; do
+	echo "###    #############################################################" |& tee -a $fSlog
+	echo "###    #############################################################" |& tee -a $fSlog
+	echo "###    It is now $(date +'%Y-%m-%d %H:%M:%S')                    ####" |& tee -a $fSlog
+	echo "###                                                         ########" |& tee -a $fSlog
+	echo "###                     The turn is now of:                 ########" |& tee -a $fSlog
+	echo "###                                                         ########" |& tee -a $fSlog
+	echo "###" |& tee -a $fSlog
+	echo "###    $i.mkv" |& tee -a $fSlog
+	echo "###" |& tee -a $fSlog
+	echo "###" |& tee -a $fSlog
+	if [ -e "flowS_noSum_BASE.png" ] ; then
+		cp -av flowS_noSum_BASE.png flowS_noSum.png
+	fi
+	
+	# Before the work, we need to learn what some basic properties of the video
+	# are, and set some variables accordingly:
+	#
+	for s in $(echo width height sample_aspect_ratio display_aspect_ratio r_frame_rate) ;
+		do ffprobe -v panic -of default=nw=1:nk=1 -select_streams v:0 \
+			-show_entries stream=$s $i.mkv > stream.$s ;
+		done ;
+	ffprobe -v panic -of default=nw=1:nk=1 \
+		-show_entries format=duration $i.mkv > format.duration
+	# We may well yet use $i.wid and $i.hei to find the aspect of videos later (in
+	# Cut4Licet.sh, but right in this base flowstamp script, we need to set a few
+	# numbers for -scale option of IM convert lines, as well as for the -vf ...
+	# scale= parameter of the ffmpeg lines.
+		wid=$(<stream.width)
+		hei=$(<stream.height)
+		sar=$(<stream.sample_aspect_ratio)
+		dar=$(<stream.display_aspect_ratio)
+		rate=$(<stream.r_frame_rate)
+		len=$(<format.duration)
+	echo \$wid: $wid |& tee -a $fSlog
+	export wid
+	echo |& tee -a $fSlog
+	
+	echo \$hei: $hei |& tee -a $fSlog
+	export hei
+	echo |& tee -a $fSlog
+	
+	echo \$sar: $sar |& tee -a $fSlog
+	export sar
+	echo |& tee -a $fSlog
+	
+	echo \$dar: $dar |& tee -a $fSlog
+	export dar
+	echo |& tee -a $fSlog
+	
+	echo \$rate: $rate |& tee -a $fSlog
+	export rate
+	echo |& tee -a $fSlog
+	
+	echo \$len: $len |& tee -a $fSlog
+	export len
+	echo |& tee -a $fSlog
+	
+	# That gives the whole story, the $sar (which is often 1:1) and $dar which the
+	# most used value nowadays is 16:9, and since a few years back it was 4:3.
+	# Currently, since some of my archives are spal (758x576 25fps) --see 'man
+	# ffmpeg-all' for probably all standard values-- I can try and kind of
+	# transpose, in this transitional period, $dar to my old $asp values...
+	# (still in a few places of the program midentify is called in stead of
+	# ffprobe, to which the transition is sporadically incomplete). Pls.
+	# remember that I am not really a programmer and have created this
+	# imperfect program out of sheer need.
+	if [ "$dar" == "16:9" ] ; then
+		echo "1.7778" > $i.asp
+	else if [ "$dar" == "4:3" ] ; then
+		echo "1.3333" > $i.asp
+		fi
+	fi
+	
+	echo $i.mkv: $(cat $i.asp) |& tee -a $fSlog
+	echo \$i.asp: $i.asp |& tee -a $fSlog
+	echo cat $i.asp |& tee -a $fSlog
+	cat $i.asp |& tee -a $fSlog
+	echo |& tee -a $fSlog
+	
+	# Now it should be pretty straightforward... For the -scale it's just, find it
+	# below: -scale ${wid}x${hei}
+	# What that does is gives the parameter -scale 768x576 for 768x576 video and
+	# -scale 1920x1080 for 1920x1080 video, of course.
+	# And for the -vf ... scale= parameter, it does similarly, after we, here, set:
+		rhei=$(echo $hei*25/72|bc)
+	# What that does is gives the parameter scale=768:200 for 768x576 video and
+	# scale=1920:360 for 1920x1080 video.
+		echo |& tee -a $fSlog
+		echo \$rhei: $rhei |& tee -a $fSlog
+		echo |& tee -a $fSlog
+	# you may find scale=${wid}:${rhei} in some ffmpeg lines in some of the scripts
+	# (surely r can stand for real or relative, any longer prefix would be too long)
+	
+	# Only making my 25fps, 30fps, and 50fps videos to work, this is a very
+	# incomplete solution at this time!
+	case "$rate" in
+		"25/1" )
+			echo "25" > $i.fps
+		;;
+	
+		"30/1" )
+			echo "30" > $i.fps
+		;;
+	
+		"50/1" )
+			echo "50" > $i.fps
+		;;
+	
+		* )
+			echo "Other rates will be supported when I will need them," |& tee -a $fSlog
+			echo "and find time. Or if you do it." |& tee -a $fSlog
+		;;
+	esac
+	
+	# On this $r variable ('r' for 'rate' in fps) a lot will depend throughout the
+	# scripts. Currently only 25, 30, 50 should work. No time to take other
+	# integers, and the floats into account at this time. In other words, tweak it
+	# yourself and send me patches if you can patch my program to work for say ntsc
+	# (30000/1001 or 29.97 and 24000/1001 or 23.97) values and other values.
+	r=$(cat $i.fps | cut -d'.' -f1)
+	echo |& tee -a $fSlog
+	echo \$r: $r |& tee -a $fSlog
+	echo |& tee -a $fSlog
+	
+	cat format.duration | cut -d '=' -f 2 | cut -d '.' -f 1 > $i.leni
+	echo "$i.leni ([len]gth [i]nteger only):" |& tee -a $fSlog
+	cat $i.leni |& tee -a $fSlog
+	echo |& tee -a $fSlog
+	# Here the if condition that can serve two purposes.
+	#	1) it can be used to skip flowstamping proper, if we only want
+	#	   to add license/credit sequence to start and to end of the
+	#	   video
+	#	2) it can be used to forgo flowstamping proper when and because it has already
+	#	   done, being that the video in question has already been successfully 
+	#	   flowstamped, and we do not want, nor need, to do it again   ;-)
+	# That is, in case there is ${i}_fs.mkv (or equivalent in case of other
+	# extensions) --and that ${i}_fs.mkv can be just an empty file, for the first
+	# case, while for the second case it will be the flowstamped video-- we will
+	# skip almost the entire script, where for the purposes of the second optional
+	# functionality of the script (license/credit sequence at start/end), another
+	# script (Cut4Licet.sh) will be offered to be called to that purpose.
+	#
+	# Important for those who just want that license/credit sequence functionality,
+	# the 1) above: uncomment the next line to create that empty file (for all the
+	# videos in this Flowstamp run). It is needed for skipping the flowstamping:
+	#
+	# (this is what the variable $only_licet in flowstamp-prepare.sh uncomments
+	# when fed the input "ONLY")
+	#touch ${i}_fs.mkv
+	#
+	# (or you can use the included 'flowstamp-prepare.sh' to do it for you).
+	#
+	if [ -e "flowS_PNG.d" ] ; then rm -rf flowS_PNG.d/ ; fi
+	mkdir -p flowS_PNG.d/
+	
+	# Depending on the rate \$r of the video, we will created the [sum-]stamping
+	# overlay in the appropriate way. We don't want the flowing stamp to move twice
+	# too slowly for 50fps video, or a little more slowly for 30fps, but
+	# rather, as closely as we can figure it out, at about the same speed for
+	# the currently supported 25, 30 and 50 fps, and thanks to the right
+	# options in ffmpeg lines, it won't be jittery.
+	#
+	# We define it here, because we will be using it in both sum-stamping and
+	# no-sum-stamping code blocks of the respective if conditions below.
+	#
+	case $r in
+		25 )
+			top_limit=1280
+			o=640
+			p=4
+		;;
+	
+		30 )
+			top_limit=1493
+			o=853
+			p=3
+		;;
+	
+		50 )
+			top_limit=1920
+			o=1280
+			p=2
+		;;
+	esac
+	
+	head -$top_limit Licet/Auxil-contrib/ls-1_9999 | tail -$o > ls-1_641-$top_limit
+	cp -av ./ls-1_641-$top_limit flowS_PNG.d/
+	cp -av flowS_noSum.png flowS_PNG.d/
+	
+	if [ ! -e "${i}_fs.mkv" ] ; then
+		echo "###    We're in the wrapper if conditional, necessary for" |& tee -a $fSlog
+		echo "###    various options concerning (sum/no-sum)-stamping or not," |& tee -a $fSlog
+		echo "###    and to be able to reuse previously sum-stammped videos." |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    It's not so long, but it is a conditional" |& tee -a $fSlog
+		echo "###    whose second part wraps only near the end of the script," |& tee -a $fSlog
+		echo "###    Condition, the existence of ${i}_fs.mkv false," |& tee -a $fSlog
+		echo "###    so we continue here..." |& tee -a $fSlog
+		if [ -e "$i.mkv" ] ; then
+			echo "###    At the very start of the long killer if conditional." |& tee -a $fSlog
+			echo "###    For this main stretch the condition of the existence" |& tee -a $fSlog
+			echo "###    of the listed video must be true" |& tee -a $fSlog
+			echo "###    (and it is if you're reading this in the log)." |& tee -a $fSlog
+			echo "###    This condition needs to be here, because on a long" |& tee -a $fSlog
+			echo "###    haul flowstamp runs, the videos you want to work" |& tee -a $fSlog
+			echo "###    need only be there when it's their turn." |& tee -a $fSlog
+			echo "###    At the start only their entry need to be in the list." |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    The number of frames a video consists of is" |& tee -a $fSlog
+			echo "###    calculated at this point." |& tee -a $fSlog
+			l=$(cat format.duration)
+			echo "###    " |& tee -a $fSlog
+			echo "" |& tee -a $fSlog
+			echo $l*$r|bc | cut -d'.' -f1 > $i.lenf
+			echo cat $i.lenf |& tee -a $fSlog
+			cat $i.lenf |& tee -a $fSlog
+			echo "" |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			# (Un)comment (out) this if you (don't) want sum-stamping:
+			#touch no-sum-stamping
+    		# (or you can use the included 'flowstamp-prepare.sh' to do it for you).
+			if [ ! -e "no-sum-stamping" ] ; then
+				echo "###    Video needs to be sum-stamped as empty file" |& tee -a $fSlog
+				echo "###    'no-sum-stamping' does not exist." |& tee -a $fSlog
+				# First thing here is checking if the video to be sum-stamped
+				# is in the list of videos that need to use a sum from an
+				# ancestor/parent video, from which the plain video which
+				# awaiting to be overlayed is already a derivative/child of, so
+				# this derivative video's sum really would not mean much, and
+				# would even be counterproductive, since it is always the
+				# primal ancestor, and not a derivative, which needs to be kept
+				# for proof (such as, e. g., the video as it was made by the camera
+				# prior to any manipulation whatsoever, and which bears the
+				# date and time of the event when it was taken, and all the
+				# intricate idiosyncratic particularities, useful in
+				# argumenting a case of authorship.
+				#
+				# This list bears, in this program, the hardcoded filename:
+				# 'PRIMAL.sum' (uppercase filename 'PRIMAL', '.', lowercase
+				# extension 'sum')
+				#
+				# Obviously, you need to prepare it. Just put in that plain
+				# text file the sum that you want sum-stamped alongside with
+				# the filename of the video that you want that sum to be
+				# sum-stamped with.
+				#
+				# Line by line, make that list in the fashion in which in FOSS
+				# Linuxdom the habit is for programs to print out the sums as
+				# they check files' hashes.
+				#
+				# If a correctly formated entry for a video exists in the file
+				# 'PRIMAL.sum' in the directory in which the main flowstamp
+				# script is run, then Flowstamp program will not check on that
+				# particular video, but simply overlay the provided sum onto
+				# that video.
+				#
+				if [ -e "PRIMAL.sum" ] ; then
+					SUCCESS=0
+					grep $i.mkv PRIMAL.sum > ls-1_vid.sum
+					if [ $? != $SUCCESS ] ; then
+						sha256sum $i.mkv > ls-1_vid.sum
+					fi
+					else
+						sha256sum $i.mkv > ls-1_vid.sum
+				fi
+				cat ls-1_vid.sum | cut -d' ' -f1 > ls-1_vid_TMP.sum
+				echo "cat ls-1_vid_TMP.sum" |& tee -a $fSlog
+				cat ls-1_vid_TMP.sum |& tee -a $fSlog
+				echo "That is the sha256 for $i" |& tee -a $fSlog
+				currsum=$(cat ls-1_vid_TMP.sum)
+				echo ; echo
+				echo "###    \$currsum is the current sum ready to be overlayed:" |& tee -a $fSlog
+				echo "###    And this is \$currsum:" |& tee -a $fSlog
+				echo $currsum |& tee -a $fSlog
+				echo
+				echo "Here we check if you provided \$2, which then will become ls-1_vid_r.sum" |& tee -a $fSlog
+				echo "(r for, say, real). If not, we'll assign ls-1_vid.sum to ls-1_vid_r.sum" |& tee -a $fSlog
+				echo "Most certainly it is a double check if you provide the original" |& tee -a $fSlog
+				echo "checksum list, such as one that can be gotten with jacksum or other" |& tee -a $fSlog
+				echo "programs, reformatted, if it isn't already so, to contain two spaces" |& tee -a $fSlog
+				echo "btwn sum and filename" |& tee -a $fSlog
+				if [ -n "$2" ] ; then
+						echo "###    " |& tee -a $fSlog
+						echo "You supplied \$2." |& tee -a $fSlog
+						echo "###    " |& tee -a $fSlog
+						echo $2
+						cat $2 | sed 's/.mkv//' > ls-1_vid_r.sum
+						echo "ls-1_vid_r.sum contains the sha256 list to check against:" |& tee -a $fSlog
+					else
+						cp -av ls-1_vid.sum ls-1_vid_r.sum
+				fi
+				# However, we'll overwrite the above if the video is in PRIMAL.sum
+				if [ -e "PRIMAL.sum" ] ; then
+						# PRIMAL.sum takes all the precedences ;-)
+						if [ -e "primal_grepd_tmp" ] ; then rm primal_grepd_tmp ; fi
+						grep $i PRIMAL.sum | sed 's/.mkv//' > primal_grepd_tmp
+						primal_grepd=$(<primal_grepd_tmp)
+						echo \$primal_grepd: $primal_grepd |& tee -a $fSlog
+						echo "If the above is empty, the \$primal_grepd is empty." |& tee -a $fSlog
+						echo "And it must be so, if the video is not in it!" |& tee -a $fSlog
+						# but [PRIMAL.sum takes precedence]
+						# only if grep saw the $i in it
+						if [ -s "$primal_grepd" ] ; then
+							echo $primal_grepd > ls-1_vid_r.sum
+						fi
+						echo cat ls-1_vid_r.sum |& tee -a $fSlog
+						cat ls-1_vid_r.sum |& tee -a $fSlog
+				fi
+				if [ -e currsum_grepd_tmp ] ; then rm -v currsum_grepd_tmp ; fi
+				echo "We'll grep its value on ls-1_vid_r.sum now" |& tee -a $fSlog
+				currsum_grepd=currsum_grepd_tmp
+				echo ; echo
+				echo "variable \$currsum_grepd just created, temp content" |& tee -a $fSlog
+				echo "The value assigned (should be currsum_grepd_tmp)" |& tee -a $fSlog
+				grep $currsum ls-1_vid_r.sum > $currsum_grepd
+				echo
+				grepd_vid=$(cat $currsum_grepd | cut -d' ' -f3 | sed 's/.mkv//')
+				echo
+				grepd_sum=$(cat $currsum_grepd | cut -d' ' -f1)
+				echo "###    " |& tee -a $fSlog
+				echo "###    This is echo \$grepd_sum:" |& tee -a $fSlog
+				echo $grepd_sum |& tee -a $fSlog
+				echo "\$grepd_vid on ls-1_vid_r.sum" |& tee -a $fSlog
+				echo "The name:" |& tee -a $fSlog
+				echo "$grepd_vid" |& tee -a $fSlog
+				echo "###    Just the video name (without extension) now." |& tee -a $fSlog
+				echo "###    This is echo \$grepd_vid:" |& tee -a $fSlog
+				echo $grepd_vid |& tee -a $fSlog
+				echo
+				echo "###    This is echo \$i" |& tee -a $fSlog
+				echo $i |& tee -a $fSlog
+				if [ "$grepd_vid" = "$i" ] ; then
+					echo "###    We are at the start of if conditional for the correct sum." |& tee -a $fSlog
+					echo "###    chosen for the overlaying." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    #############################################################" |& tee -a $fSlog
+					echo "###    If you supplied sums list for double checking, the" |& tee -a $fSlog
+					echo "###            calculated sum matches for" |& tee -a $fSlog
+					echo "###           $i" |& tee -a $fSlog
+					echo "###    (or the sum from PRIMAL.sum overrode it)" |& tee -a $fSlog
+					echo "###    #############################################################" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					convert -background transparent -fill "#001e63" -font Helvetica -pointsize 28 \
+						label:"$currsum" flowS_SUM_TMP_${i}.png
+					if [ ! -e "flowS_noSum_BASE.png" ] ; then
+						cp -av flowS_noSum.png flowS_noSum_BASE.png
+					fi
+					mv -v flowS_noSum.png flowS_noSum_opaq.png
+					convert -size 6546x480 xc:none -background transparent flowS_EMPTY.png
+					# This is the place mentioned in the flowS_noSum script, 60x40 replaced
+					# with say 70x30 is more opaque, replaced with say 50x50 is more
+					# transparent, just the flowS_noSum.png, but see below...
+					composite flowS_noSum_opaq.png -blend 60x40 flowS_EMPTY.png flowS_noSum.png
+					composite -geometry +271+242 flowS_SUM_TMP_${i}.png \
+						flowS_noSum.png flowS_wSUM_TMP_1st.png
+					composite -geometry +1551+242 flowS_SUM_TMP_${i}.png \
+						flowS_wSUM_TMP_1st.png flowS_wSUM_TMP_2nd.png
+					composite -geometry +2831+242 flowS_SUM_TMP_${i}.png \
+						flowS_wSUM_TMP_2nd.png flowS_wSUM_TMP_3rd.png
+					composite -geometry +4111+242 flowS_SUM_TMP_${i}.png \
+						flowS_wSUM_TMP_3rd.png flowS_wSUM_TMP_4th.png
+					composite -geometry +5391+242 flowS_SUM_TMP_${i}.png \
+						flowS_wSUM_TMP_4th.png flowS_wSUM.png
+					cp -iav flowS_SUM_TMP_${i}.png JIC/flowS_SUM_TMP_${i}_$(date +%s).png
+					cp -iav flowS_wSUM.png JIC/flowS_wSUM_${i}_$(date +%s).png
+					cp -v flowS_wSUM.png flowS_wSUM_opaq.png
+					if [ "$r" == 30 ] ; then
+						# 25fps (the default for framerate in ffmpeg) and 30fps, are not exactly
+						# divisible by all the same prime numbers, so to get smooth flowstamping
+						# a little tweaking is needed. Only for 30fps.
+						convert flowS_wSUM_opaq.png -resize 6544x480! flowS_wSUM_opaq_r30.png
+						mv -iv flowS_wSUM_opaq.png JIC/flowS_wSUM_opaq.png_$(date +%s)
+						mv -iv flowS_wSUM_opaq_r30.png flowS_wSUM_opaq.png
+					fi
+					# ...but replace 12x88 with say 8x92 it's more (probably too) transparent,
+					# and with say 50x50 it's way annoyingly opaque like in e.g. some Pakistani
+					# news reports (pls. don't torture anyone's eyes like that!, this one
+					# applies to the entire flowS_wSUM.png.
+					display flowS_wSUM_opaq.png & pid=$! ; sleep 10 ; kill $pid ;
+					echo "###    What you just saw is what will soon be overlayed onto:" |& tee -a $fSlog
+					echo "${i}.mkv"
+					echo "###    (It was displayed at this point, if you're reading the log)" |& tee -a $fSlog
+					echo "identify flowS_wSUM_opaq.png" |& tee -a $fSlog
+					identify flowS_wSUM_opaq.png |& tee -a $fSlog
+					composite flowS_wSUM_opaq.png -blend 12x88 flowS_EMPTY.png flowS_wSUM.png |& tee -a $fSlog
+					echo "###    Let's put more checks here. The flowS_PNG.d/flowS_wSUM.png is" |& tee -a $fSlog
+					echo "###    from previous iteration. How about listing it, calculating" |& tee -a $fSlog
+					echo "###    its hash and deleting it?" |& tee -a $fSlog
+					echo $(basename $0) point 1 |& tee -a $fSlog
+					#read FAKE
+					ls -l flowS_PNG.d/flowS_wSUM.png flowS_wSUM.png |& tee -a $fSlog
+					sha256sum flowS_PNG.d/flowS_wSUM.png flowS_wSUM.png |& tee -a $fSlog
+					rm -v flowS_PNG.d/flowS_wSUM.png |& tee -a $fSlog
+					echo "###    It should be pretty dead, right?" |& tee -a $fSlog
+					cp -v flowS_wSUM.png flowS_PNG.d/ |& tee -a $fSlog
+					sha256sum flowS_PNG.d/flowS_wSUM.png flowS_wSUM.png |& tee -a $fSlog
+	
+					rm -f flowS_PNG.d/flowS_wSUM-[0-9][0-9][0-9][0-9].png
+					echo ls -l flowS_PNG.d/ |& tee -a $fSlog
+					ls -l flowS_PNG.d/ |& tee -a $fSlog
+					cd flowS_PNG.d/
+					ln -s ../$fSlog
+					ls -l ../$fSlog $fSlog |& tee -a $fSlog
+					mkdir -p JIC/ DEL/
+					echo $(basename $0) point 2 |& tee -a $fSlog
+					#read FAKE
+					echo "###    " |& tee -a $fSlog
+					echo "###    A few minutes work on the overlay image here." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					for k in $(cat ls-1_641-$top_limit)
+						do convert -define png:color-type=6 flowS_wSUM.png \
+									-crop 960x180+$(echo $k*$p|bc)+180 flowS_wSUM-$k.png
+							convert flowS_wSUM-$k.png -scale ${wid}x${hei} flowS_wSUM-${k}_scale.png
+							convert flowS_wSUM-${k}_scale.png -define png:color-type=6 \
+								flowS_wSUM-${k}_define.png
+							mv flowS_wSUM-$k.png flowS_wSUM-${k}_scale.png DEL/
+							mv flowS_wSUM-${k}_define.png flowS_wSUM-$k.png
+						done
+					echo $(basename $0) point 3 |& tee -a $fSlog
+					#read FAKE
+					for m in $(<../ls-1_641-$top_limit)
+						do
+							n=$(echo $m-640|bc)
+							echo mv -v flowS_wSUM-$m.png flowS_wSUM-$n.png
+							mv -v flowS_wSUM-$m.png flowS_wSUM-$n.png
+						done
+					echo $(basename $0) point 4 |& tee -a $fSlog
+					#read FAKE
+					chcase -x 's/flowS_wSUM-/flowS_wSUM-000/' flowS_wSUM-?.png
+					chcase -x 's/flowS_wSUM-/flowS_wSUM-00/' flowS_wSUM-??.png
+					chcase -x 's/flowS_wSUM-/flowS_wSUM-0/' flowS_wSUM-???.png
+					cd ../
+					echo "###    " |& tee -a $fSlog
+					echo "###    This gets input to ffmpeg, later on, \$i.lenf:" |& tee -a $fSlog
+					echo "###    $i.lenf, frames" |& tee -a $fSlog
+					cat $i.lenf |& tee -a $fSlog
+					echo "###    gotten from the length \$i.leni:" |& tee -a $fSlog
+					echo "###    echo $i.leni, seconds" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    #####################################################" |& tee -a $fSlog
+					echo "###    This is the checksum prepared to be flowstamped onto" |& tee -a $fSlog
+					echo "###    the file: $i.mkv" |& tee -a $fSlog
+					echo "###    cat ls-1_vid_TMP.sum" |& tee -a $fSlog
+					cat ls-1_vid_TMP.sum |& tee -a $fSlog
+					echo "###    #####################################################" |& tee -a $fSlog
+					echo "###    Same, same value must return:" |& tee -a $fSlog
+					echo "###    cat \$currsum" |& tee -a $fSlog
+					echo $currsum |& tee -a $fSlog
+					echo "###    Again, same value must return:" |& tee -a $fSlog
+					echo "###    echo \$grepd_sum" |& tee -a $fSlog
+					echo $grepd_sum |& tee -a $fSlog
+					echo "###    If the above values are not the same, it's probable" |& tee -a $fSlog
+					echo "###    that you're about to overlay wrong sha256 sum..." |& tee -a $fSlog
+					echo "###    and then this current run is to no avail for you." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    It is now $(date +'%Y-%m-%d %H:%M:%S')" |& tee -a $fSlog
+					echo "###    And we will soon start producing the" |& tee -a $fSlog
+					echo "###    mov file flowS_wSUM_${i}.mov." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo $currsum > flowS_SUM_TMP_${i}.txt &
+					echo $grepd_sum > flowS_SUM_TMP_${i}.txt &
+					cat ls-1_vid_TMP.sum > flowS_SUM_TMP_${i}.txt &
+					echo "###    The file that we now made flowS_SUM_TMP_${i}.txt should contain" |& tee -a $fSlog
+					echo "###    three times the same value of 64 exact same digits." |& tee -a $fSlog
+					cat flowS_SUM_TMP_${i}.txt |& tee -a $fSlog
+					echo "###    I believe nothing anymore could go wrong, but who knows, there may" |& tee -a $fSlog
+					echo "###    still be particular issues yet to understand, before I get" |& tee -a $fSlog
+					echo "###    so sick with all these trials to fall into pieces ;-)" |& tee -a $fSlog
+					echo "###    The \$currsum is stowed int flowS_SUM_TMP_${i}.txt" |& tee -a $fSlog
+					echo "###    And you can see that it is:" |& tee -a $fSlog
+					echo "###    $currsum here too" |& tee -a $fSlog
+					echo "###    The point is that (if you supplied the previously calculated sums" |& tee -a $fSlog
+					echo "###    list) we checked against it by calculating anew." |& tee -a $fSlog
+					echo "###    If it isn't so, you're doing the flowstamping of the sum on the" |& tee -a $fSlog
+					echo "###    current file to no avail whatsoever. Maybe adapt this script to" |& tee -a $fSlog
+					echo "###    suit your needs with other funcionalities of this script," |& tee -a $fSlog
+					echo "###    but without overlaying the sha256 sum." |& tee -a $fSlog
+					ffmpeg -y -loop 1 -i flowS_PNG.d/flowS_wSUM-%4d.png -r $r \
+					 -c qtrle -frames $(cat $i.lenf) flowS_wSUM_${i}.mov
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    We are now producing the" |& tee -a $fSlog
+					echo "###    mov file flowS_wSUM_${i}.mov which" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    1) can be rather large" |& tee -a $fSlog
+					echo "###    2) cannot be viewed till it's done" |& tee -a $fSlog
+					echo "###    3) may take its time to complete" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    ;-)" |& tee -a $fSlog
+					ffmpeg -y -loop 1 -framerate $r -i flowS_PNG.d/flowS_wSUM-%4d.png \
+					 -c qtrle -r $r -frames $(cat $i.lenf) flowS_wSUM_${i}.mov
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					i_fs=${i}_$(date +%y%m%d_%H%M%S)
+					echo "###    " |& tee -a $fSlog
+					echo "###    It is now $(date +'%Y-%m-%d %H:%M:%S')" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    The mov file flowS_wSUM_${i}.mov is completed" |& tee -a $fSlog
+					echo "###    The $i_fs.mkv will now start to be output" |& tee -a $fSlog
+					echo "###    (the flowstamped $i.mkv, later to be renamed)" |& tee -a $fSlog
+					echo "###    And it can be played in the process" |& tee -a $fSlog
+					echo "###    with mplayer or other programs" |& tee -a $fSlog
+					echo "###    Again, the checksum featured in the flowS_wSUM_${i}.mov" |& tee -a $fSlog
+					echo "###    to be right now overlayed onto the file: $i.mkv" |& tee -a $fSlog
+					echo "###    according to my understanding of my own script" |& tee -a $fSlog
+					echo "###    (which is imperfect but somewhat reliable)" |& tee -a $fSlog
+					echo "###    is this one:" |& tee -a $fSlog
+					cat ls-1_vid_TMP.sum |& tee -a $fSlog
+					echo "###    cat ls-1_vid.sum | tail -1" |& tee -a $fSlog
+					cat ls-1_vid.sum | tail -1 |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    It is now $(date +'%Y-%m-%d %H:%M:%S')" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					ffmpeg -y -i $i.mkv \
+						-vf "movie=flowS_wSUM_${i}.mov \
+						[wm],[in][wm] overlay=(W-w)/2:(H-h)/2 [out]" \
+						-c:v libx264 -g 10 -c:a libvorbis -ar 48k -ac 2 $i_fs.mkv ;
+					rm -v flowS_wSUM_${i}.mov
+					echo "$(basename $0) point 401" |& tee -a $fSlog
+					#read FAKE ;
+					mv flowS_wSUM_TMP_1st.png flowS_wSUM_TMP_2nd.png flowS_wSUM_TMP_4th.png \
+						flowS_wSUM_TMP_4th.png flowS_noSum_opaq.png flowS_EMPTY.png JIC/
+					echo "###    (Un)comment (out) the line 'mplayer \$i_fs.mkv'" |& tee -a $fSlog
+					echo "###    if you want/don't want to run the following test" |& tee -a $fSlog
+					echo "###    We will play now the flowstamped file" |& tee -a $fSlog
+					echo "###    Pls. discern sufficiently clearly" |& tee -a $fSlog
+					echo "###    exactly these numbers in this video" |& tee -a $fSlog
+					echo "###    (probability is great all is correct if" |& tee -a $fSlog
+					echo "###    even only a small string of numbers is correct)!" |& tee -a $fSlog
+					echo "###    Use common sense concerning probability!" |& tee -a $fSlog
+					echo "###    (such as if you know your system is not owned by" |& tee -a $fSlog
+					echo "###    a surveillor entity and you personally captured/filmed the" |& tee -a $fSlog
+					echo "###    videos and without the same being compromised in the process)." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    Again, discern (some of) exactly these numbers:" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					cat ls-1_vid_TMP.sum |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    If you saw the right numbers, and only if" |& tee -a $fSlog
+					echo "###    you did find it is right, the sum-stamping is purposeful." |& tee -a $fSlog
+					echo "###    The file is, next, renamed to simply ${i}_fs.mkv" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo \$i_fs.mkv: $i_fs.mkv
+					mplayer $i_fs.mkv -endpos 10
+					echo $(basename $0) point 5 |& tee -a $fSlog
+					#read FAKE
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					mv $i_fs.mkv ${i}_fs.mkv
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    ###################################################" |& tee -a $fSlog
+					echo "###    $i.mkv has been flowstamped" |& tee -a $fSlog
+					echo "###    and the new file named ${i}_fs.mkv" |& tee -a $fSlog
+					echo "###    ###################################################" |& tee -a $fSlog
+				else
+					echo "###    We reached here into the else clause of the if conditional" |& tee -a $fSlog
+					echo "###    checking on the sum chosen for the overlaying." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    #############################################################" |& tee -a $fSlog
+					echo "###    If you supplied sums list for double checking, the" |& tee -a $fSlog
+					echo "###            calculated sum" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###               ===>   does NOT match   <===" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###                                   the supplied sum for" |& tee -a $fSlog
+					echo "###           $i" |& tee -a $fSlog
+					echo "###    and there was no point to sum-stamp it" |& tee -a $fSlog
+					echo "###    #############################################################" |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    Somehow you got the wrong sha256 that would be overlayed" |& tee -a $fSlog
+					echo "###    onto video it does not belong to. The file $i.mkv" |& tee -a $fSlog
+					echo "###    therefore has not been flowstamped." |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+					echo "###    " |& tee -a $fSlog
+				fi
+			else
+				echo "###    Video does not need sum-stamping as empty file" |& tee -a $fSlog
+				echo "###    'no-sum-stamping' exists." |& tee -a $fSlog
+				echo "###    We'll be overlaying plain flowing stamp only." |& tee -a $fSlog
+				display flowS_noSum.png & pid=$! ; sleep 10 ; kill $pid
+				cp -v flowS_noSum.png flowS_noSum_opaq.png
+				# (comment pasted from sum-stamping section, two stages in transparency
+				# titrating preserved, for simplicity of maintenance)
+				# The first stage:
+				# This is the place mentioned in the flowS_noSum script, 60x40 replaced
+				# with say 70x30 is more opaque, replaced with say 50x50 is more
+				# transparent
+				convert -size 6546x480 xc:none -background transparent flowS_EMPTY.png
+				composite flowS_noSum_opaq.png -blend 60x40 flowS_EMPTY.png flowS_noSum.png
+				# The second stage next. After we backup the good opaq base png.
+					if [ ! -e "flowS_noSum_BASE.png" ] ; then
+						cp -av flowS_noSum.png flowS_noSum_BASE.png
+					fi
+				cp -v flowS_noSum.png flowS_noSum_opaq.png
+				# Replace 12x88 with say 8x92 it's more (probably too) transparent,
+				# and with say 50x50 it's way annoyingly opaque like in e.g. some Pakistani
+				# news reports (pls. don't torture anyone like that!)
+				composite flowS_noSum_opaq.png -blend 12x88 flowS_EMPTY.png flowS_noSum.png
+				cp -v flowS_noSum.png flowS_PNG.d/
+				cp -v flowS_noSum.png flowS_PNG.d/
+				cd flowS_PNG.d/
+				mkdir -p JIC/ DEL/
+				for k in $(cat ls-1_641-$top_limit)
+					do convert -define png:color-type=6 flowS_noSum.png \
+								-crop 960x180+$(echo $k*$p|bc)+180 flowS_noSum-$k.png
+						convert flowS_noSum-$k.png -scale ${wid}x${hei} flowS_noSum-${k}_scale.png
+						convert flowS_noSum-${k}_scale.png -define png:color-type=6 \
+							flowS_noSum-${k}_define.png
+						mv flowS_noSum-$k.png flowS_noSum-${k}_scale.png DEL/
+						mv flowS_noSum-${k}_define.png flowS_noSum-$k.png
+    				done
+				echo $(basename $0) point 501 |& tee -a $fSlog
+				#read FAKE
+				for m in $(<../ls-1_641-$top_limit)
+					do
+						n=$(echo $m-640|bc)
+						echo mv -v flowS_noSum-$m.png flowS_noSum-$n.png
+						mv -v flowS_noSum-$m.png flowS_noSum-$n.png
+					done
+				echo $(basename $0) point 502 |& tee -a $fSlog
+				#read FAKE
+				chcase -x 's/flowS_noSum-/flowS_noSum-000/' flowS_noSum-?.png
+				chcase -x 's/flowS_noSum-/flowS_noSum-00/' flowS_noSum-??.png
+				chcase -x 's/flowS_noSum-/flowS_noSum-0/' flowS_noSum-???.png
+				cd ../
+				ffmpeg -y -loop 1 -framerate $r -i flowS_PNG.d/flowS_noSum-%4d.png \
+				 -c qtrle -r $r -frames $(cat $i.lenf) flowS_noSum_${i}.mov
+				i_fs=${i}_$(date +%y%m%d_%H%M%S)
+				ffmpeg -y -i $i.mkv \
+					-vf "movie=flowS_noSum_${i}.mov \
+					[wm],[in][wm] overlay=(W-w)/2:(H-h)/2 [out]" \
+					-c:v libx264 -g 10 -c:a libvorbis -ar 48k -ac 2 $i_fs.mkv ;
+				rm -v flowS_noSum_${i}.mov
+				echo "###    (Un)comment (out) the line 'mplayer $i_fs.mkv'" |& tee -a $fSlog
+				echo "###    if you want/don't want to run the following test" |& tee -a $fSlog
+				echo "###    We will play now the flowstamped file" |& tee -a $fSlog
+				echo \$i_fs.mkv: $i_fs.mkv |& tee -a $fSlog
+				echo "###    " |& tee -a $fSlog
+				mplayer $i_fs.mkv -endpos 10
+				echo $(basename $0) point 6 |& tee -a $fSlog
+				#read FAKE
+				echo "###    " |& tee -a $fSlog
+				echo "###    (10 seconds of the flowstamped video were played here)" |& tee -a $fSlog
+				mv $i_fs.mkv ${i}_fs.mkv
+				echo "###    " |& tee -a $fSlog
+				echo "###    " |& tee -a $fSlog
+				echo "###    ###################################################" |& tee -a $fSlog
+				echo "###    $i.mkv has been flowstamped" |& tee -a $fSlog
+				echo "###    and the new file named ${i}_fs.mkv" |& tee -a $fSlog
+				echo "###    ###################################################" |& tee -a $fSlog
+				echo "###    " |& tee -a $fSlog
+				echo "###    " |& tee -a $fSlog
+			fi
+			mv $i.lenf JIC/${i}_$(date +%s).lenf
+			mv ls-1_vid_TMP.sum JIC/ls-1_vid_TMP_$(date +%s).sum
+			echo "###    " |& tee -a $fSlog
+			echo "###    It is now $(date +'%Y-%m-%d %H:%M:%S')" |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			# (Un)comment (out) this if you (don't) want licet functionality at all:
+			#touch no-licet
+			# (or you can use the included 'flowstamp-prepare.sh' to do it for you).
+			echo "###    ######################################################################" |& tee -a $fSlog
+			echo "###    ######################################################################" |& tee -a $fSlog
+			echo "###    We have just reached the end of the first" |& tee -a $fSlog
+			echo "###    Flowstamp stage/functionality, which manipulates on the video." |& tee -a $fSlog
+			echo "###    called more strictly flowstamping..." |& tee -a $fSlog
+			echo "###    #################" |& tee -a $fSlog
+			echo "###    There are two possibilities to reach here. With this video you" |& tee -a $fSlog
+			echo "###    reached here because the:" |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    ####!!!!   (sum/no-sum)-overlaying   !!!!####" |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###        on:    ${i}_fs.mkv   " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    has been completed (or anyhow we're out of first stage)." |& tee -a $fSlog
+			echo "###    #################" |& tee -a $fSlog
+			echo "###    and now we will be starting the second stage/functionality," |& tee -a $fSlog
+			echo "###    which adds to the beginning and end of the video," |& tee -a $fSlog
+			echo "###    the licet functionality." |& tee -a $fSlog
+			echo "###    ######################################################################" |& tee -a $fSlog
+			echo "###    ######################################################################" |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			echo "###    " |& tee -a $fSlog
+			if [ ! -e "no-licet" ] ; then
+				echo "###    We need to create licet start and end sequences now." |& tee -a $fSlog
+				rm -rf ./Licet/Cut4Licet.d/
+				mkdir -p ./Licet/Cut4Licet.d
+				echo ${i}_fs > ./Licet/Cut4Licet.d/ls-1_mkv
+				cat ./Licet/Cut4Licet.d/ls-1_mkv |& tee -a $fSlog
+				cd ./Licet/Cut4Licet.d/
+				ln -s ../../${i}_fs.mkv
+				ls -l |& tee -a $fSlog
+				cd -
+				pwd |& tee -a $fSlog
+				cd ./Licet/
+				ln -s ../$fSlog
+				ls -l ../$fSlog $fSlog |& tee -a $fSlog
+				# We create logo with:
+				./Auxil-contrib/make_logo.sh |& tee -a $fSlog
+				mv -v LOGO_Flowstamp.png LOGO_Flowstamp_4x3.png ./Auxil-contrib/
+				ln -s ../$fSlog
+				echo "###    " |& tee -a $fSlog
+				echo "###    Now we prepare the titles, credits or licensing for overlaying." |& tee -a $fSlog
+				echo "###    " |& tee -a $fSlog
+				./Cut4Licet.sh |& tee -a $fSlog
+				cd -
+			else
+				echo "###    You've opted for no licet at all" |& tee -a $fSlog
+			fi
+		else
+			echo "$i.mkv does not exist in this directory right now:" |& tee -a $fSlog
+			echo "               $(date +'%Y-%m-%d %H:%M:%S')" |& tee -a $fSlog
+			echo "You need to remember to move a video in here before its turn," |& tee -a $fSlog
+			echo "to be processed." |& tee -a $fSlog
+		fi
+		if [ -e flowS_wSUM.png ] ; then
+			mv -v flowS_wSUM.png JIC/flowS_wSUM_$(date +%s).png
+		fi
+		mkdir -p Txt.d/ ;
+		if [ -e flowS_SUM_TMP_${i}.txt ] ; then
+			mv -v flowS_SUM_TMP_${i}.txt Txt.d/${i}.txt
+			echo "The sum used overlayed onto the video is in Txt.d/${i}.txt" |& tee -a $fSlog
+			cat Txt.d/${i}.txt |& tee -a $fSlog
+		fi
+		if [ -e flowS_SUM_TMP_${i}.png ] ; then
+			mv -v flowS_SUM_TMP_${i}.png JIC/flowS_SUM_TMP_${i}_$(date +%s).png
+		fi
+		if [ -e currsum_grepd_tmp ] ; then
+			mv -v currsum_grepd_tmp JIC/
+		fi
+	else
+		echo "###    Condition, the existence of ${i}_fs.mkv, is true" |& tee -a $fSlog
+		echo "###    so we skipped some 60% of the text of the script," |& tee -a $fSlog
+		echo "###    and we continue here..." |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    From here to near end of script, we only manipulate" |& tee -a $fSlog
+		echo "###    the licet functionality." |& tee -a $fSlog
+		# (Un)comment (out) this if you (don't) want licet functionality at all:
+		#
+		# (this is what the variable $licet_reply in flowstamp-prepare.sh uncomments
+		# when the input is anything other than "YES")
+		#touch no-licet
+		#
+		# (or you can use the included 'flowstamp-prepare.sh' to do it for you).
+		echo "###    ######################################################################" |& tee -a $fSlog
+		echo "###    ######################################################################" |& tee -a $fSlog
+		echo "###    We have just reached the end of the first" |& tee -a $fSlog
+		echo "###    Flowstamp stage/functionality, which manipulates on the video." |& tee -a $fSlog
+		echo "###    called more strictly flowstamping..." |& tee -a $fSlog
+		echo "###    #################" |& tee -a $fSlog
+		echo "###    There are two possibilities to reach here. With this video you" |& tee -a $fSlog
+		echo "###    reached here in this iteration, because the:" |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###          ${i}_fs.mkv   " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    was either previously made or was touched empty." |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    #################" |& tee -a $fSlog
+		echo "###    and now we will be starting the second stage/functionality," |& tee -a $fSlog
+		echo "###    which adds to the beginning and end of the video," |& tee -a $fSlog
+		echo "###    the licet functionality." |& tee -a $fSlog
+		echo "###    ######################################################################" |& tee -a $fSlog
+		echo "###    ######################################################################" |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		echo "###    " |& tee -a $fSlog
+		if [ ! -e "no-licet" ] ; then
+			echo "###    We need to create licet start and end sequences now." |& tee -a $fSlog
+			echo $(basename $0) point 7
+			#read FAKE
+			if [ -s "${i}_fs.mkv" ] ; then
+				mkdir -p ./Licet/Cut4Licet.d
+				cd ./Licet/Cut4Licet.d/
+				ln -s ../../${i}_fs.mkv
+				ls -l |& tee -a $fSlog
+			echo $(basename $0) point 701
+			#read FAKE
+			else
+				ls -l ${i}_fs.mkv
+				ls -l ${i}.mkv
+				mkdir -p ./Licet/Cut4Licet.d
+				cd ./Licet/Cut4Licet.d/
+				ln -s ../../$i.mkv ${i}_fs.mkv
+			fi
+			echo $(basename $0) point 702
+			#read FAKE
+			cd -
+			echo ${i}_fs > ./Licet/Cut4Licet.d/ls-1_mkv
+			cat ./Licet/Cut4Licet.d/ls-1_mkv |& tee -a $fSlog
+			pwd |& tee -a $fSlog
+			cd ./Licet/
+			ln -s ../$fSlog
+			ls -l ../$fSlog $fSlog |& tee -a $fSlog
+			# We create logo with:
+			./Auxil-contrib/make_logo.sh |& tee -a $fSlog
+			mv -v LOGO_Flowstamp.png LOGO_Flowstamp_4x3.png ./Auxil-contrib/
+			ln -s ../$fSlog
+			echo "###    "
+			echo "###    Now we prepare the titles, credits or licensing for overlaying." |& tee -a $fSlog
+			echo "###    "
+			./Cut4Licet.sh |& tee -a $fSlog
+			cd -
+		else
+			echo "###    You've opted for no licet at all" |& tee -a $fSlog
+		fi
+	fi
+	# some cleaning:
+	rm *.{leni,fps,asp} stream.* format.duration ls-1_[0-9]*
+	echo "###" |& tee -a $fSlog
+	echo "###" |& tee -a $fSlog
+	echo "###    The processing (or attempt of processing) of:" |& tee -a $fSlog
+	echo "###" |& tee -a $fSlog
+	echo "###    $i.mkv" |& tee -a $fSlog
+	echo "###" |& tee -a $fSlog
+	echo "###                                                         ########" |& tee -a $fSlog
+	echo "###         has drawn to its end in this Flowstamp run.     ########" |& tee -a $fSlog
+	echo "###                                                         ########" |& tee -a $fSlog
+	echo "###    It is now $(date +'%Y-%m-%d %H:%M:%S')                    ####" |& tee -a $fSlog
+	echo "###    #############################################################" |& tee -a $fSlog
+	echo "###    #############################################################" |& tee -a $fSlog
+	echo "###    =============================================================" |& tee -a $fSlog
+done ;
+if [ -e ls-1_vid ] ; then
+	mv -v ls-1_vid JIC/ls-1_vid_$(date +%s)
+fi
+if [ -e flowS_noSum.png ] ; then
+	mv -v flowS_noSum.png JIC/flowS_noSum_$(date +%s).png
+fi
+echo "###    We seem to have processed (or not processed but reached here)" |& tee -a $fSlog
+echo "###    some of/all the items of your list." |& tee -a $fSlog
+echo "###    Correct your own or my script's mistakes if not." |& tee -a $fSlog
+echo "###    If you corrected or improved this script, then pls." |& tee -a $fSlog
+echo "###    see flowstamp_HR_U.txt for contacting me!" |& tee -a $fSlog
+echo "###    God bless the users of this script for good and" |& tee -a $fSlog
+echo "###    right or at least legitimate purpose (isn't some legitimate purpose" |& tee -a $fSlog
+echo "###    the sole very probable and likely use of this program at least" |& tee -a $fSlog
+echo "###    as far as the main sum-stamping functionality goes?)!" |& tee -a $fSlog
+echo "###    (Remember, this program is a small gift to people" |& tee -a $fSlog
+echo "###    good and bad, by me, who have almost been thrown in jail" |& tee -a $fSlog
+echo "###    for \"copyright crimes\" by the regime in my Croatia.)" |& tee -a $fSlog

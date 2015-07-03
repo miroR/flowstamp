@@ -1,0 +1,30 @@
+Dosta Schmoogle-a. Natrag razgovorati s koristnicima Flowstampa.
+
+Sav text izpod (obuhvaćajući što čitaš), (izuzev nekih dva odjeljka na samom
+dnu), prometnut je u slike i onda prevučen na kraj slikopisa putem podešavanja
+skripti u Flowstamp programu. Jedini rad pješke bilo je moje prjevođenje
+teksta tiekom samog procesa (jer sam tekst napisao prvo na Engleskom, ne bih
+li što dalje oglasio svoju nevolju i nevolju mojih prijatelja, ili ako baš
+hoćeš, da bih se tugovao pred Istinom i svietom radi tegobnog stanja moje
+Nacije).
+
+Koristnici mogu, uz nešto truda, primieniti moje skripte, sada slobodno
+objavljene i poklonjene ljudima dobrim i zlim, baš kao što to zločinci obično
+čine, zar ne? (ja sam osuđeni počinitelj krivičnog djela od strane ovog
+ljigavog režima koji trenutačno mojom zemljom gospodari i to za kršenja
+auktorskih prava, nad viestima javne TV i (ponovno: "javne") dokumentarcima
+javne TV (sic!), i ti su me izrodi skoro utamničili)...
+
+Ali kazivah, ti, ako želiš rabiti moj program, možeš se otisnuti u proučavanje
+kako je ovaj ovaj tekst izpod baš isti kao i tekst objavljen (ah valjda ne će
+pokucati na vrata prije nego ga objavim, kako su učinili s mnogim mojim
+prijateljima, ona znana posjeta ljudi režima rano ujutro) ...Možeš vidjeti
+kako je ovaj tekst izpod isti u dielu teksta koji je o Dr Tomislavu Dragunu u
+"flowstamp_HR_U_demo.txt" datoteci u (nadam se) objelodanjenom arhivu
+Flowstamp programa, prva inačica. Jedino nije ovaj uvod u toj datoteci nego u
+zasebnoj datoteci.
+
+Svaki koristnik može, dobro, ona/on treba biti malo upornija/i da pronikne
+stvari ako je manje napredna/an, ali svaki koristnik može sasvim liepo isto
+učiniti sa svojim tekstovima, te također i sa slikama u pravom smislu, uz
+pomoć mojeg Flowstamp programa.

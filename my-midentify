@@ -1,0 +1,2 @@
+#!/bin/bash
+mplayer -identify -nosound -endpos 0 $1 | grep -v 0.0000

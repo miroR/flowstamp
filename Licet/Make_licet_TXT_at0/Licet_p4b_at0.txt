@@ -1,0 +1,1 @@
+<markup><span font="Italic" face="Serif" size="15200" weight="semibold"><span fgcolor="#ccfffa">Gentoo</span>, <span fgcolor="#ccfffa">(Debian/Devuan?)</span></span></markup>

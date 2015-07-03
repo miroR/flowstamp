@@ -1,0 +1,4 @@
+<markup><span face="Ubuntu" stretch="expanded" size="11500" weight="semibold" fgcolor="white">Miroslav Rovis, <span fgcolor="#84fff7">www.CroatiaFidelis.hr</span>,
+<span underline="error" underline_color="red">+385 (0)1 660 2633</span>,   <span
+underline="error" underline_color="red">+385 (0)91 266 0202</span>,
+Vankina 4, Zagreb, Croatia</span></markup>

@@ -1,0 +1,3 @@
+<markup><span face="Ubuntu" stretch="expanded" size="11500" weight="semibold" fgcolor="white">U normalnim zemljama ljudi su obćenito slobodni komunicirati. Ali budući da ja živim pod režimom u izdaji vlastitog naroda, komunicirati je za mene, a moguće i za tebe komunicirati sa mnom, možda težak posao.
+
+Da moja zemlja nije (donekle) okupirana (na pritajen način), i da je ne vode izdajnici, mogao bih ti dati jednu e-adresu i dalje se baviti ljepšim i zanimljivijim razgovorom. Ali za gledatelje/koristnike Flowstamp prikaza/programa koji bi željeli mi pisati ili od mene čitati, moram dati složenu malu priču i više adresa, uz objašnjenja i upozorenja.</span></markup>

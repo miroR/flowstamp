@@ -1,0 +1,17 @@
+<markup><span face="Ubuntu" size="11500" stretch="expanded" weight="semibold" fgcolor="white">and it should be easy getting it to work on any Unix kind.  Porting it to other platforms could be non-trivial, no time here, anyone is free to do it, within bounds of the BSD license.
+
+This text you're reading you can completely replace with your text, with the Flowstamp program, in a fashion similar to HTML, by means of markup language.
+
+Flowstamp however has come to being because I needed the functionality which you will be able to observe throughout the entire length of the video transparently stamped two (very short) lines of text onto (some internet address, name, something else).
+
+The functionality for which I made Flowstamp, however, is the third line right between the two (usually) larger font lines, and by virtue of that third line with flowing 64 digit hexadecimal number, SHA256 sum calculated on the original video before flowtamping, you can still keep the identity of your authored work from being stolen because you can prove you authored it.
+
+Or you can undeniably claim, by virtue of that unique number flowstamped onto a, say, video captured by TV-card from free-to-air transmission, and in public domain (in democracies: news and political events), by you or your team, that video to be from your collection.
+
+All that, of course, given that you keepsake the original that identifies by that SHA256 sum. This is important. You have been warned!
+
+The marvel lies in that you can, now that you can reliably claim the aforesaid, allow your video to be seen by the public (if all that you wanted is that no one claims your work in your stead), or by some group, or individuals (such as only to certain group or persons, eligible by some quality or capacity).
+
+You can achieve that through the functionality of the Flowstamp program which I named Licet (Latin: it is permitted), by writing your own licensing terms instead of this text at start, or/and through more detailed text at end of video.
+
+All that text can be what you wish and formatted nicely. But Flowstamp is not a GUI program, it is a command line program. Complexity will be there for you to master. There's the documentation.</span></markup>

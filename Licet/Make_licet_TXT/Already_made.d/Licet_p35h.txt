@@ -1,0 +1,1 @@
+<markup><span face="Ubuntu" stretch="expanded" size="11500" weight="semibold" fgcolor="white">Evo, sha256 jednog komprimiranog arhiva tekstualnih 0.8 GB, u slučaju da pokušam pokazati nešto od potajne režimske zloporabe nada mnom, kao i u druge svrhe.</span></markup>

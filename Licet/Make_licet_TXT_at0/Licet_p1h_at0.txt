@@ -1,0 +1,1 @@
+<markup><span face="Ubuntu" stretch="expanded" size="11500" weight="semibold" fgcolor="white">Ovo je prikaz programa:</span></markup>
