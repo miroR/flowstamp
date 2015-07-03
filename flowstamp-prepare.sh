@@ -149,7 +149,7 @@ if [ "$licet_reply" == "YES" ] ; then
 	echo ""
 	echo "========================================"
 	echo
-	echo "DISREGARD THIS SECTION, I THINK IT'S CURRENTLY BROKEN"
+	echo "DISREGARD THIS SECTION, I THINK THIS SECTION OF flowstamp-prepare.sh IS CURRENTLY BROKEN"
 	echo "Just hit Enter to go passed it."
 	echo "This program uses plain text files (well, with pango markup) to"
 	echo "create images and then video overlay for start and end of your"
@@ -178,7 +178,7 @@ if [ "$licet_reply" == "YES" ] ; then
 	echo "If you want to get that script to make files that you can edit in"
 	echo "the way I just explained, then type YES here."
 	echo ""
-	echo "DISREGARD THIS SECTION, I THINK IT'S CURRENTLY BROKEN"
+	echo "DISREGARD THIS SECTION, I THINK THIS SECTION OF flowstamp-prepare.sh IS CURRENTLY BROKEN"
 	echo ""
 	echo "Just hit Enter to go passed it."
 	echo "========================================"
