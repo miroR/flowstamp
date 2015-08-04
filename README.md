@@ -200,16 +200,16 @@ checking whatsoever), and completely unpolished.  But it does the work, for
 me, on my Gentoo GNU/Linux boxes, as well as on my (Debian/Devuan?) boxes,
 where it does all that I programmed it to do.
 
-#                                                                             #
-#      Hereby I also explicitly inform you that this program mostly just      #
-#                     -- as of this writing --                                #
-#      wouldn't work out-of-the-box. You will probably need to modify         #
-#      these scripts to fit your particular needs. Therefore it is            #
-#      commented in quite a few places and most of the critical points        #
-#      are hopefully sufficiently well explained.                             #
-#                                                                             #
-#                    Read all before use!                                     #
-#                                                                             #
+                                                                             
+      Hereby I also explicitly inform you that this program mostly just      
+                     -- as of this writing --                                
+      wouldn't work out-of-the-box. You will probably need to modify         
+      these scripts to fit your particular needs. Therefore it is            
+      commented in quite a few places and most of the critical points        
+      are hopefully sufficiently well explained.                             
+                                                                             
+                    Read all before use!                                     
+                                                                             
 
 This script will, in the directory you run this script. sum-stamp all the
 videos (and/or do other things on them, as already mentioned) which, it is
